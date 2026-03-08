@@ -1,0 +1,5 @@
+node_modules/
+build/
+apple-mcp/calendar/src/calendar-helper
+apple-mcp/calendar/src/calendar-helper-arm64
+apple-mcp/calendar/src/calendar-helper-x86_64

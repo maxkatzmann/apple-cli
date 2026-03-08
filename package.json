@@ -1,0 +1,22 @@
+{
+  "name": "apple-cli",
+  "version": "1.0.0",
+  "description": "CLI wrapper around apple-mcp — interact with Apple apps from the command line",
+  "bin": {
+    "apple-cli": "bin/apple-cli"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "prepare": "node scripts/build-swift.cjs"
+  },
+  "keywords": ["apple", "macos", "cli", "notes", "calendar", "contacts", "mail", "reminders", "messages", "maps"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "tsx": "^4.19.2",
+    "zod": "^3.24.4"
+  }
+}

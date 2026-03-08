@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Thin shim that runs the CLI via tsx (TypeScript runtime — no build step needed).
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec npx --yes tsx "$DIR/../src/index.ts" "$@"
