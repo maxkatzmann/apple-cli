@@ -1,6 +1,6 @@
 # apple-cli
 
-`apple-cli` is a command-line interface for interacting with Apple apps on macOS. It wraps the [apple-mcp](https://github.com/griches/apple-mcp) collection of AppleScript/EventKit integrations into a single CLI with the format:
+`apple-cli` is a command-line interface for interacting with Apple apps on macOS. It wraps the [apple-mcp](https://github.com/maxkatzmann/apple-mcp) collection of AppleScript/EventKit integrations into a single CLI with the format:
 
 ```
 apple-cli [app] [command] [--option value ...]
