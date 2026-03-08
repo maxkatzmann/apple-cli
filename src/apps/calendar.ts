@@ -60,13 +60,18 @@ export function calendarCommand(safety: SafetyOpts): Command {
     .option("--location <location>", "Event location")
     .option("--description <description>", "Event description/notes")
     .option("--all_day", "Mark as an all-day event")
+    .option("--alert_minutes <minutes>", "Minutes before event for alert(s), comma-separated (e.g. 30 or 30,120)")
     .action(async (o) => {
       assertWritable(safety);
+      const alertMinutes = o.alert_minutes
+        ? o.alert_minutes.split(",").map((m: string) => parseInt(m.trim(), 10)).filter(Number.isFinite)
+        : undefined;
       try {
         output(await applescript.createEvent(o.calendar, o.summary, o.start_date, o.end_date, {
           location: o.location,
           description: o.description,
           allDay: o.all_day,
+          alertMinutes,
         }));
       } catch (e) { fatal((e as Error).message); }
     });
@@ -82,8 +87,16 @@ export function calendarCommand(safety: SafetyOpts): Command {
     .option("--location <location>", "New location")
     .option("--description <description>", "New description")
     .option("--all_day", "Mark as all-day")
+    .option("--alert_minutes <minutes>", "Replace alerts (comma-separated minutes before event, e.g. 30 or 30,120; use empty string '' to remove all)")
     .action(async (o) => {
       assertWritable(safety);
+      // Only set alertMinutes if flag was explicitly passed
+      let alertMinutes: number[] | undefined;
+      if (o.alert_minutes !== undefined) {
+        alertMinutes = o.alert_minutes === ""
+          ? []
+          : o.alert_minutes.split(",").map((m: string) => parseInt(m.trim(), 10)).filter(Number.isFinite);
+      }
       try {
         output(await applescript.updateEvent(o.summary, o.calendar, {
           newSummary: o.new_summary,
@@ -92,6 +105,7 @@ export function calendarCommand(safety: SafetyOpts): Command {
           location: o.location,
           description: o.description,
           allDay: o.all_day,
+          alertMinutes,
         }));
       } catch (e) { fatal((e as Error).message); }
     });

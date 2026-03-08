@@ -196,11 +196,13 @@ Read operations use a compiled Swift EventKit binary for fast access (~0.1s). Wr
 | `list_events` | List events in one calendar | `--calendar`, `--from_date`, `--to_date` | — |
 | `get_event` | Get full details of an event | `--summary` | `--calendar` |
 | `search_events` | Search events by title | `--query` | `--calendar` |
-| `create_event` ✏️ | Create a calendar event | `--calendar`, `--summary`, `--start_date`, `--end_date` | `--location`, `--description`, `--all_day` |
-| `update_event` ✏️ | Update an existing event | `--summary` | `--calendar`, `--new_summary`, `--start_date`, `--end_date`, `--location`, `--description`, `--all_day` |
+| `create_event` ✏️ | Create a calendar event | `--calendar`, `--summary`, `--start_date`, `--end_date` | `--location`, `--description`, `--all_day`, `--alert_minutes` |
+| `update_event` ✏️ | Update an existing event | `--summary` | `--calendar`, `--new_summary`, `--start_date`, `--end_date`, `--location`, `--description`, `--all_day`, `--alert_minutes` |
 | `delete_event` ⚠️ | Delete a calendar event | `--summary` | `--calendar`, `--confirm` |
 
 Date format: natural language strings like `"15 March 2026"` or `"15 March 2026 at 2:00 PM"`
+
+`--alert_minutes` accepts a single number or a comma-separated list of numbers representing minutes before the event (e.g. `30` for 30 minutes, `30,120` for two alerts at 30 min and 2 hours before). On `update_event`, omitting the flag leaves existing alerts unchanged; passing `""` removes all alerts.
 
 ### Examples
 ```bash
@@ -208,6 +210,9 @@ apple-cli calendar list_calendars
 apple-cli calendar list_all_events --from_date "1 March 2026" --to_date "31 March 2026"
 apple-cli calendar list_events --calendar "Work" --from_date "1 March 2026" --to_date "31 March 2026"
 apple-cli calendar create_event --calendar "Work" --summary "Team Standup" --start_date "15 March 2026 at 9:00 AM" --end_date "15 March 2026 at 9:30 AM" --location "Conference Room A"
+apple-cli calendar create_event --calendar "Work" --summary "Board Meeting" --start_date "20 March 2026 at 10:00 AM" --end_date "20 March 2026 at 11:00 AM" --alert_minutes "30,120"
+apple-cli calendar update_event --summary "Board Meeting" --alert_minutes "15"
+apple-cli calendar update_event --summary "Board Meeting" --alert_minutes ""
 apple-cli calendar search_events --query "standup"
 apple-cli calendar delete_event --summary "Old Meeting" --confirm
 ```
