@@ -18,9 +18,10 @@ export function mailCommand(safety: SafetyOpts): Command {
     .requiredOption("--mailbox <name>", "Mailbox name")
     .requiredOption("--account <name>", "Account name")
     .option("--limit <n>", "Maximum messages to return", "25")
+    .option("--unread-only", "Only return unread messages")
     .action(async (o) => {
       try {
-        output(await as.listMessages(o.mailbox, o.account, parseInt(o.limit, 10)));
+        output(await as.listMessages(o.mailbox, o.account, parseInt(o.limit, 10), o.unreadOnly));
       } catch (e) { fatal((e as Error).message); }
     });
 

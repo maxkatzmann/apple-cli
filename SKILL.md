@@ -128,7 +128,7 @@ Interacts with Apple Mail via AppleScript.
 | Command | Description | Required Options | Optional Options |
 |---------|-------------|-----------------|-----------------|
 | `list_mailboxes` | List all mailboxes with unread counts | — | — |
-| `list_messages` | List messages in a mailbox | `--mailbox`, `--account` | `--limit` (default 25) |
+| `list_messages` | List messages in a mailbox | `--mailbox`, `--account` | `--limit` (default 25), `--unread-only` |
 | `get_message` | Get full email content by ID | `--mailbox`, `--account`, `--id` | — |
 | `search_messages` | Search emails | `--query` | `--mailbox`, `--account`, `--limit` (default 25), `--field` (subject\|sender) |
 | `send_email` ✏️ | Send an email | `--to`, `--subject`, `--body` | `--cc`, `--bcc`, `--from` |
