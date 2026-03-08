@@ -2,7 +2,7 @@
 
 ## Overview
 
-`apple-cli` is a command-line interface for interacting with Apple apps on macOS. It wraps the [apple-mcp](https://github.com/griches/apple-mcp) collection of AppleScript/EventKit integrations into a single CLI with the format:
+`apple-cli` is a command-line interface for interacting with Apple apps on macOS. Command format:
 
 ```
 apple-cli [app] [command] [--option value ...]
@@ -11,34 +11,6 @@ apple-cli [app] [command] [--option value ...]
 All output is **JSON** written to stdout. Errors are written to stderr with a non-zero exit code.
 
 Supported apps: `notes`, `messages`, `contacts`, `mail`, `reminders`, `calendar`, `maps`
-
----
-
-## Requirements
-
-- **macOS** — uses AppleScript and macOS-specific APIs
-- **Node.js 18+** (Node 22+ for Messages)
-- **The associated Apple app must be running** when calling commands that use AppleScript
-- **Full Disk Access** granted to your terminal app — required for `messages` (reads `~/Library/Messages/chat.db`)
-- **Calendar access** — macOS will prompt for permission on first use of calendar read operations
-
----
-
-## Installation
-
-```bash
-git clone --recurse-submodules <repo-url> apple-cli
-cd apple-cli
-npm install   # also compiles the Swift calendar-helper binary
-```
-
-After installation, run directly via:
-
-```bash
-npx tsx src/index.ts [app] [command] [options]
-# or if linked globally:
-apple-cli [app] [command] [options]
-```
 
 ---
 
@@ -274,14 +246,3 @@ apple-cli maps open_address --address "1 Apple Park Way, Cupertino, CA"
 | ⚠️ | Destructive operation — blocked by `--read-only`; requires `--confirm` when `--confirm-destructive` is active |
 
 ---
-
-## Updating apple-mcp
-
-Since `apple-mcp` is a git submodule, pull upstream updates with:
-
-```bash
-git submodule update --remote apple-mcp
-npm install   # re-runs the Swift binary build if needed
-git add apple-mcp
-git commit -m "Update apple-mcp submodule"
-```
