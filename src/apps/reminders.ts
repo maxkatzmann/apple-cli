@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import { output, fatal, assertWritable, assertDestructive, type SafetyOpts } from "../utils/output.ts";
-import * as as from "../../apple-mcp/reminders/src/applescript.ts";
+import * as eventkit from "../../apple-mcp/reminders/src/eventkit.ts";
 
 export function remindersCommand(safety: SafetyOpts): Command {
   const cmd = new Command("reminders").description("Interact with Apple Reminders");
@@ -9,7 +9,7 @@ export function remindersCommand(safety: SafetyOpts): Command {
     .command("list_lists")
     .description("List all reminder lists")
     .action(async () => {
-      try { output(await as.listLists()); } catch (e) { fatal((e as Error).message); }
+      try { output(await eventkit.listLists()); } catch (e) { fatal((e as Error).message); }
     });
 
   cmd
@@ -18,7 +18,7 @@ export function remindersCommand(safety: SafetyOpts): Command {
     .requiredOption("--name <name>", "Name of the list")
     .action(async (o) => {
       assertWritable(safety);
-      try { output(await as.createList(o.name)); } catch (e) { fatal((e as Error).message); }
+      try { output(await eventkit.createList(o.name)); } catch (e) { fatal((e as Error).message); }
     });
 
   cmd
@@ -28,17 +28,19 @@ export function remindersCommand(safety: SafetyOpts): Command {
     .option("--include_completed", "Include completed reminders")
     .action(async (o) => {
       try {
-        output(await as.listReminders(o.list, o.includeCompleted));
+        output(await eventkit.listReminders(o.list, o.includeCompleted));
       } catch (e) { fatal((e as Error).message); }
     });
 
   cmd
     .command("get_reminder")
-    .description("Get full details of a reminder by name")
-    .requiredOption("--name <name>", "Reminder name")
+    .description("Get full details of a reminder by name or id")
+    .option("--name <name>", "Reminder name")
+    .option("--id <id>", "Reminder ID (alternative to --name)")
     .option("--list <name>", "List to search in (searches all if omitted)")
     .action(async (o) => {
-      try { output(await as.getReminder(o.name, o.list)); } catch (e) { fatal((e as Error).message); }
+      if (!o.name && !o.id) fatal("get_reminder requires --name or --id");
+      try { output(await eventkit.getReminder(o.name, o.list, o.id)); } catch (e) { fatal((e as Error).message); }
     });
 
   cmd
@@ -52,7 +54,7 @@ export function remindersCommand(safety: SafetyOpts): Command {
     .action(async (o) => {
       assertWritable(safety);
       try {
-        output(await as.createReminder(o.name, o.list, {
+        output(await eventkit.createReminder(o.name, o.list, {
           body: o.body,
           dueDate: o.due_date,
           priority: o.priority,
@@ -63,42 +65,48 @@ export function remindersCommand(safety: SafetyOpts): Command {
   cmd
     .command("update_reminder")
     .description("Update an existing reminder [write]")
-    .requiredOption("--name <name>", "Current reminder name")
+    .option("--name <name>", "Current reminder name")
+    .option("--id <id>", "Reminder ID (alternative to --name)")
     .option("--list <name>", "List containing the reminder")
     .option("--new_name <name>", "New name for the reminder")
     .option("--body <body>", "New notes / body text")
     .option("--due_date <date>", "New due date")
     .option("--priority <n>", "New priority", parseInt)
     .action(async (o) => {
+      if (!o.name && !o.id) fatal("update_reminder requires --name or --id");
       assertWritable(safety);
       try {
-        output(await as.updateReminder(o.name, o.list, {
+        output(await eventkit.updateReminder(o.name, o.list, {
           newName: o.new_name,
           body: o.body,
           dueDate: o.due_date,
           priority: o.priority,
-        }));
+        }, o.id));
       } catch (e) { fatal((e as Error).message); }
     });
 
   cmd
     .command("complete_reminder")
     .description("Mark a reminder as completed [write]")
-    .requiredOption("--name <name>", "Reminder name")
+    .option("--name <name>", "Reminder name")
+    .option("--id <id>", "Reminder ID (alternative to --name)")
     .option("--list <name>", "List containing the reminder")
     .action(async (o) => {
+      if (!o.name && !o.id) fatal("complete_reminder requires --name or --id");
       assertWritable(safety);
-      try { output(await as.completeReminder(o.name, o.list)); } catch (e) { fatal((e as Error).message); }
+      try { output(await eventkit.completeReminder(o.name, o.list, o.id)); } catch (e) { fatal((e as Error).message); }
     });
 
   cmd
     .command("uncomplete_reminder")
     .description("Mark a completed reminder as incomplete [write]")
-    .requiredOption("--name <name>", "Reminder name")
+    .option("--name <name>", "Reminder name")
+    .option("--id <id>", "Reminder ID (alternative to --name)")
     .option("--list <name>", "List containing the reminder")
     .action(async (o) => {
+      if (!o.name && !o.id) fatal("uncomplete_reminder requires --name or --id");
       assertWritable(safety);
-      try { output(await as.uncompleteReminder(o.name, o.list)); } catch (e) { fatal((e as Error).message); }
+      try { output(await eventkit.uncompleteReminder(o.name, o.list, o.id)); } catch (e) { fatal((e as Error).message); }
     });
 
   cmd
@@ -107,18 +115,20 @@ export function remindersCommand(safety: SafetyOpts): Command {
     .requiredOption("--query <query>", "Search query")
     .option("--list <name>", "List to search in (searches all if omitted)")
     .action(async (o) => {
-      try { output(await as.searchReminders(o.query, o.list)); } catch (e) { fatal((e as Error).message); }
+      try { output(await eventkit.searchReminders(o.query, o.list)); } catch (e) { fatal((e as Error).message); }
     });
 
   cmd
     .command("delete_reminder")
     .description("Delete a reminder [destructive]")
-    .requiredOption("--name <name>", "Reminder name")
+    .option("--name <name>", "Reminder name")
+    .option("--id <id>", "Reminder ID (alternative to --name)")
     .option("--list <name>", "List containing the reminder")
     .option("--confirm", "Required when --confirm-destructive is active")
     .action(async (o) => {
+      if (!o.name && !o.id) fatal("delete_reminder requires --name or --id");
       assertDestructive({ ...safety, confirm: o.confirm });
-      try { output(await as.deleteReminder(o.name, o.list)); } catch (e) { fatal((e as Error).message); }
+      try { output(await eventkit.deleteReminder(o.name, o.list, o.id)); } catch (e) { fatal((e as Error).message); }
     });
 
   cmd
@@ -128,7 +138,7 @@ export function remindersCommand(safety: SafetyOpts): Command {
     .option("--confirm", "Required when --confirm-destructive is active")
     .action(async (o) => {
       assertDestructive({ ...safety, confirm: o.confirm });
-      try { output(await as.deleteList(o.name)); } catch (e) { fatal((e as Error).message); }
+      try { output(await eventkit.deleteList(o.name)); } catch (e) { fatal((e as Error).message); }
     });
 
   return cmd;

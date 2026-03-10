@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Build script: compiles the Swift EventKit helper binary used by apple-mcp/calendar.
- * The binary is placed in apple-mcp/calendar/src/ so tsx can resolve it at runtime
- * via __dirname when importing eventkit.ts directly from source.
+ * Build script: compiles Swift EventKit helper binaries for apple-mcp/calendar
+ * and apple-mcp/reminders. Binaries are placed in their respective src/ dirs
+ * so tsx can resolve them at runtime via __dirname.
  */
 
 const { execSync } = require("node:child_process");
@@ -10,37 +10,49 @@ const { existsSync } = require("node:fs");
 const { join } = require("node:path");
 
 const root = join(__dirname, "..");
-const swiftSrc = join(root, "apple-mcp/calendar/swift/CalendarHelper.swift");
-const outDir = join(root, "apple-mcp/calendar/src");
-const outBin = join(outDir, "calendar-helper");
-const arm64 = join(outDir, "calendar-helper-arm64");
-const x86 = join(outDir, "calendar-helper-x86_64");
 
-if (!existsSync(swiftSrc)) {
-  console.error("Swift source not found — skipping calendar-helper build.");
-  process.exit(0);
+function buildBinary({ swiftSrc, outDir, binName }) {
+  const outBin = join(outDir, binName);
+  const arm64 = join(outDir, `${binName}-arm64`);
+  const x86 = join(outDir, `${binName}-x86_64`);
+
+  if (!existsSync(swiftSrc)) {
+    console.error(`Swift source not found (${swiftSrc}) — skipping ${binName} build.`);
+    return;
+  }
+
+  if (existsSync(outBin)) {
+    console.log(`${binName} already built, skipping.`);
+    return;
+  }
+
+  console.log(`Building ${binName} Swift binary...`);
+  try {
+    execSync(
+      `swiftc -O -target arm64-apple-macosx13.0 -o "${arm64}" "${swiftSrc}" -framework EventKit -framework Foundation`,
+      { stdio: "inherit" }
+    );
+    execSync(
+      `swiftc -O -target x86_64-apple-macosx13.0 -o "${x86}" "${swiftSrc}" -framework EventKit -framework Foundation`,
+      { stdio: "inherit" }
+    );
+    execSync(`lipo -create "${arm64}" "${x86}" -output "${outBin}"`, { stdio: "inherit" });
+    execSync(`rm "${arm64}" "${x86}"`);
+    console.log(`${binName} built successfully.`);
+  } catch (err) {
+    console.error(`Failed to build ${binName}:`, err.message);
+    console.error(`Install Xcode command-line tools and re-run npm install.`);
+  }
 }
 
-if (existsSync(outBin)) {
-  console.log("calendar-helper already built, skipping.");
-  process.exit(0);
-}
+buildBinary({
+  swiftSrc: join(root, "apple-mcp/calendar/swift/CalendarHelper.swift"),
+  outDir:   join(root, "apple-mcp/calendar/src"),
+  binName:  "calendar-helper",
+});
 
-console.log("Building calendar-helper Swift binary...");
-try {
-  execSync(
-    `swiftc -O -target arm64-apple-macosx13.0 -o "${arm64}" "${swiftSrc}" -framework EventKit -framework Foundation`,
-    { stdio: "inherit" }
-  );
-  execSync(
-    `swiftc -O -target x86_64-apple-macosx13.0 -o "${x86}" "${swiftSrc}" -framework EventKit -framework Foundation`,
-    { stdio: "inherit" }
-  );
-  execSync(`lipo -create "${arm64}" "${x86}" -output "${outBin}"`, { stdio: "inherit" });
-  execSync(`rm "${arm64}" "${x86}"`);
-  console.log("calendar-helper built successfully.");
-} catch (err) {
-  console.error("Failed to build calendar-helper:", err.message);
-  console.error("Calendar read operations will not work. Install Xcode command-line tools and re-run npm install.");
-  process.exit(0); // Non-fatal — other apps still work
-}
+buildBinary({
+  swiftSrc: join(root, "apple-mcp/reminders/swift/RemindersHelper.swift"),
+  outDir:   join(root, "apple-mcp/reminders/src"),
+  binName:  "reminders-helper",
+});

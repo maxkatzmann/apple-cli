@@ -152,7 +152,7 @@ apple-cli mail mark_read --id 42 --mailbox "INBOX" --account "iCloud"
 
 ## Reminders (`apple-cli reminders ...`)
 
-Interacts with Apple Reminders via AppleScript.
+Interacts with Apple Reminders via EventKit. The Reminders app does not need to be open.
 
 ### Commands
 
@@ -160,14 +160,14 @@ Interacts with Apple Reminders via AppleScript.
 |---------|-------------|-----------------|-----------------|
 | `list_lists` | List all reminder lists | — | — |
 | `create_list` ✏️ | Create a reminder list | `--name` | — |
-| `list_reminders` | List reminders in a list | `--list` | `--include_completed` |
-| `get_reminder` | Get full details of a reminder | `--name` | `--list` |
+| `list_reminders` | List reminders with a due date in a list | `--list` | `--include_completed` |
+| `get_reminder` | Get full details of a reminder | `--name` or `--id` | `--list` (for name lookup) |
 | `create_reminder` ✏️ | Create a new reminder | `--name`, `--list` | `--body`, `--due_date`, `--priority` (0/1/5/9) |
-| `update_reminder` ✏️ | Update an existing reminder | `--name` | `--list`, `--new_name`, `--body`, `--due_date`, `--priority` |
-| `complete_reminder` ✏️ | Mark reminder as completed | `--name` | `--list` |
-| `uncomplete_reminder` ✏️ | Mark completed reminder as incomplete | `--name` | `--list` |
+| `update_reminder` ✏️ | Update an existing reminder | `--name` or `--id` | `--list`, `--new_name`, `--body`, `--due_date`, `--priority` |
+| `complete_reminder` ✏️ | Mark reminder as completed | `--name` or `--id` | `--list` (for name lookup) |
+| `uncomplete_reminder` ✏️ | Mark completed reminder as incomplete | `--name` or `--id` | `--list` (for name lookup) |
 | `search_reminders` | Search reminders by name | `--query` | `--list` |
-| `delete_reminder` ⚠️ | Delete a reminder | `--name` | `--list`, `--confirm` |
+| `delete_reminder` ⚠️ | Delete a reminder | `--name` or `--id` | `--list`, `--confirm` |
 | `delete_list` ⚠️ | Delete a list and all reminders | `--name` | `--confirm` |
 
 Priority values: `0` = none, `1` = high, `5` = medium, `9` = low
@@ -177,9 +177,11 @@ Priority values: `0` = none, `1` = high, `5` = medium, `9` = low
 apple-cli reminders list_lists
 apple-cli reminders list_reminders --list "Shopping"
 apple-cli reminders create_reminder --name "Buy milk" --list "Shopping" --due_date "15 March 2026 at 9:00 AM"
-apple-cli reminders complete_reminder --name "Buy milk" --list "Shopping"
+apple-cli reminders complete_reminder --id "0A0737F6-6C7D-46DF-A390-40BC874E0799"
 apple-cli reminders search_reminders --query "dentist"
 ```
+
+When getting, updating, completing, or uncompleting reminders, use the id of the reminder in order to uniquely define which reminder you are targeting.
 
 ---
 
@@ -203,6 +205,7 @@ Read operations use a compiled Swift EventKit binary for fast access (~0.1s). Wr
 Date format: natural language strings like `"15 March 2026"` or `"15 March 2026 at 2:00 PM"`
 
 `--alert_minutes` accepts a single number or a comma-separated list of numbers representing minutes before the event (e.g. `30` for 30 minutes, `30,120` for two alerts at 30 min and 2 hours before). On `update_event`, omitting the flag leaves existing alerts unchanged; passing `""` removes all alerts.
+When asked to create calendar events, suggest an alert for it and ask the user if you should add that.
 
 ### Examples
 ```bash
@@ -215,6 +218,12 @@ apple-cli calendar update_event --summary "Board Meeting" --alert_minutes "15"
 apple-cli calendar update_event --summary "Board Meeting" --alert_minutes ""
 apple-cli calendar search_events --query "standup"
 apple-cli calendar delete_event --summary "Old Meeting" --confirm
+```
+
+To get the events for a specific day, you have to pass said day as the `from_date` and the following day as the `to_date`. E.g., to get all entries for `1 March 2026`, we have to run
+
+```bash
+apple-cli calendar list_all_events --from_date "1 March 2026" --to_date "2 March 2026"
 ```
 
 ---

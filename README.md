@@ -14,10 +14,11 @@ Supported apps: `notes`, `messages`, `contacts`, `mail`, `reminders`, `calendar`
 
 ## Requirements
 
-- **macOS** — uses AppleScript and macOS-specific APIs
+- **macOS 13+** — uses AppleScript and EventKit APIs
 - **Node.js 18+** (Node 22+ for Messages)
-- **The associated Apple app must be running** when calling commands that use AppleScript
+- **The associated Apple app must be running** for AppleScript-based commands (Notes, Messages, Contacts, Mail, Maps). Reminders and Calendar use EventKit directly and do not require the app to be open.
 - **Full Disk Access** granted to your terminal app — required for `messages` (reads `~/Library/Messages/chat.db`)
+- **Reminders access** — macOS will prompt for permission on first use of reminders operations
 - **Calendar access** — macOS will prompt for permission on first use of calendar read operations
 
 ---
